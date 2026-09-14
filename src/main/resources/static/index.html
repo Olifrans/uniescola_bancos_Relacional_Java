@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniEscola - Painel Administrativo</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>🎓 UniEscola</h2>
+            </div>
+            <nav>
+                <ul>
+                    <li class="active" data-target="dashboard">📊 Dashboard</li>
+                    <li data-target="escolas">🏫 Escolas</li>
+                    <li data-target="professores">👨‍🏫 Professores</li>
+                    <li data-target="alunos">🎒 Alunos</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <h1 id="page-title">Dashboard</h1>
+                <div class="user-info">Admin</div>
+            </header>
+
+            <section id="dashboard" class="content-section active">
+                <div class="cards-grid">
+                    <div class="card bg-blue"><h3>Escolas</h3><p id="count-escolas">0</p></div>
+                    <div class="card bg-green"><h3>Professores</h3><p id="count-professores">0</p></div>
+                    <div class="card bg-purple"><h3>Alunos</h3><p id="count-alunos">0</p></div>
+                </div>
+                <div class="info-box">
+                    <h3>Sobre o Sistema</h3>
+                    <p>API desenvolvida em Spring Boot demonstrando conceitos avançados de Banco de Dados Relacional, incluindo Joins, Procedures, Triggers e Functions.</p>
+                </div>
+            </section>
+
+            <section id="escolas" class="content-section">
+                <h2>Gestão de Escolas</h2>
+                <form id="form-escola" class="form-grid">
+                    <input type="text" id="esc-nome" placeholder="Nome da Escola" required>
+                    <input type="text" id="esc-cnpj" placeholder="CNPJ" required>
+                    <input type="text" id="esc-endereco" placeholder="Endereço">
+                    <button type="submit" class="btn-primary">Salvar Escola</button>
+                </form>
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Nome</th><th>CNPJ</th><th>Endereço</th></tr></thead>
+                    <tbody id="tbody-escolas"></tbody>
+                </table>
+            </section>
+
+            <!-- Seções de Professores e Alunos seguem a mesma estrutura lógica -->
+            <section id="professores" class="content-section">
+                <h2>Gestão de Professores</h2>
+                <p class="placeholder-text">Formulário e Tabela de Professores (Integração via Fetch API igual ao de Escolas).</p>
+            </section>
+            
+            <section id="alunos" class="content-section">
+                <h2>Gestão de Alunos</h2>
+                <p class="placeholder-text">Formulário e Tabela de Alunos (Integração via Fetch API igual ao de Escolas).</p>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
