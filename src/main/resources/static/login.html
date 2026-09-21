@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniEscola | Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="icon" href="data:;base64,=">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .login-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+        }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .login-logo i {
+            font-size: 4rem;
+            color: #2563eb;
+        }
+        .login-logo h1 {
+            font-size: 1.8rem;
+            color: #0f172a;
+            margin-top: 0.5rem;
+        }
+        .login-logo p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #334155;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        .btn-login {
+            width: 100%;
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .btn-login:hover {
+            background: #1d4ed8;
+        }
+        .btn-login:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+            border-left: 4px solid #dc2626;
+        }
+        .login-footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <i class="ph ph-graduation-cap"></i>
+            <h1>UniEscola</h1>
+            <p>Sistema de Gestão Acadêmica</p>
+        </div>
+        
+        <div id="error-message" class="error-message"></div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">
+                    <i class="ph ph-user"></i> Usuário
+                </label>
+                <input type="text" id="username" placeholder="Digite seu usuário" required autocomplete="username">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">
+                    <i class="ph ph-lock"></i> Senha
+                </label>
+                <input type="password" id="password" placeholder="Digite sua senha" required autocomplete="current-password">
+            </div>
+            
+            <button type="submit" class="btn-login" id="btn-login">
+                <i class="ph ph-sign-in"></i> Entrar
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <p>© 2026 UniEscola - Todos os direitos reservados</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api';
+        
+        // Se já estiver logado, redireciona para o dashboard
+        if (localStorage.getItem('token')) {
+            window.location.href = 'index.html';
+        }
+        
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+            const btnLogin = document.getElementById('btn-login');
+            
+            // Esconde mensagem de erro anterior
+            errorMessage.style.display = 'none';
+            
+            // Desabilita botão durante o login
+            btnLogin.disabled = true;
+            btnLogin.innerHTML = '<i class="ph ph-spinner"></i> Entrando...';
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.message || 'Credenciais inválidas');
+                }
+                
+                const data = await response.json();
+                
+                // Salva token e dados do usuário
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('username', data.username);
+                localStorage.setItem('nome', data.nome);
+                
+                // Redireciona para o dashboard
+                window.location.href = 'index.html';
+                
+            } catch (error) {
+                errorMessage.textContent = '❌ ' + error.message;
+                errorMessage.style.display = 'block';
+                btnLogin.disabled = false;
+                btnLogin.innerHTML = '<i class="ph ph-sign-in"></i> Entrar';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -11,6 +11,9 @@
 </head>
 <body>
     <div class="app-container">
+        <!-- ========================================== -->
+        <!-- SIDEBAR -->
+        <!-- ========================================== -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="ph ph-graduation-cap"></i>
@@ -19,16 +22,16 @@
             <nav>
                 <ul>
                     <li class="nav-item active" data-target="dashboard">
-                        <i class="ph ph-squares-four"></i> Dashboard
+                        <i class="ph ph-squares-four"></i> <span>Dashboard</span>
                     </li>
                     <li class="nav-item" data-target="escolas">
-                        <i class="ph ph-buildings"></i> Escolas
+                        <i class="ph ph-buildings"></i> <span>Escolas</span>
                     </li>
                     <li class="nav-item" data-target="professores">
-                        <i class="ph ph-chalkboard-teacher"></i> Professores
+                        <i class="ph ph-chalkboard-teacher"></i> <span>Professores</span>
                     </li>
                     <li class="nav-item" data-target="alunos">
-                        <i class="ph ph-student"></i> Alunos
+                        <i class="ph ph-student"></i> <span>Alunos</span>
                     </li>
                 </ul>
             </nav>
@@ -37,16 +40,24 @@
             </div>
         </aside>
 
+        <!-- ========================================== -->
+        <!-- MAIN CONTENT -->
+        <!-- ========================================== -->
         <main class="main-content">
             <header class="top-bar">
                 <h1 id="page-title">Dashboard</h1>
                 <div class="user-profile">
                     <i class="ph ph-user-circle"></i>
-                    <span>Administrador</span>
+                    <span id="user-name">Administrador</span>
+                    <button onclick="logout()" class="btn-logout">
+                        <i class="ph ph-sign-out"></i> Sair
+                    </button>
                 </div>
             </header>
 
-            <!-- DASHBOARD -->
+            <!-- ========================================== -->
+            <!-- SEÇÃO: DASHBOARD -->
+            <!-- ========================================== -->
             <section id="dashboard" class="content-section active">
                 <div class="cards-grid">
                     <div class="stat-card blue">
@@ -73,11 +84,13 @@
                 </div>
                 <div class="info-panel">
                     <h3><i class="ph ph-info"></i> Sobre o Sistema</h3>
-                    <p>API desenvolvida em Spring Boot demonstrando conceitos avançados de Banco de Dados Relacional. Utilize o menu lateral para gerenciar as entidades.</p>
+                    <p>API desenvolvida em Spring Boot demonstrando conceitos avançados de Banco de Dados Relacional e autenticação JWT. Utilize o menu lateral para gerenciar as entidades.</p>
                 </div>
             </section>
 
-            <!-- ESCOLAS -->
+            <!-- ========================================== -->
+            <!-- SEÇÃO: ESCOLAS -->
+            <!-- ========================================== -->
             <section id="escolas" class="content-section">
                 <div class="card form-card">
                     <h3><i class="ph ph-plus-circle"></i> <span id="form-escola-title">Nova Escola</span></h3>
@@ -116,7 +129,9 @@
                 </div>
             </section>
 
-            <!-- PROFESSORES -->
+            <!-- ========================================== -->
+            <!-- SEÇÃO: PROFESSORES -->
+            <!-- ========================================== -->
             <section id="professores" class="content-section">
                 <div class="card form-card">
                     <h3><i class="ph ph-plus-circle"></i> <span id="form-professor-title">Novo Professor</span></h3>
@@ -125,7 +140,7 @@
                         <input type="text" id="prof-nome" placeholder="Nome Completo *" required>
                         <input type="email" id="prof-email" placeholder="E-mail *" required>
                         <input type="text" id="prof-especialidade" placeholder="Especialidade (ex: Matemática)">
-                        <input type="number" id="prof-salario" placeholder="Salário (R$)" step="0.01">
+                        <input type="number" id="prof-salario" placeholder="Salário (R$)" step="0.01" min="0">
                         <input type="date" id="prof-data" title="Data de Contratação">
                         <select id="prof-escola" required>
                             <option value="">Selecione a Escola *</option>
@@ -161,7 +176,9 @@
                 </div>
             </section>
 
-            <!-- ALUNOS -->
+            <!-- ========================================== -->
+            <!-- SEÇÃO: ALUNOS -->
+            <!-- ========================================== -->
             <section id="alunos" class="content-section">
                 <div class="card form-card">
                     <h3><i class="ph ph-plus-circle"></i> <span id="form-aluno-title">Novo Aluno</span></h3>

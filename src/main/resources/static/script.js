@@ -6,7 +6,34 @@ let cacheProfessores = [];
 let cacheAlunos = [];
 
 // ==========================================
-// 1. NAVEGAÇÃO E UI
+// 0. VERIFICAÇÃO DE AUTENTICAÇÃO (JWT)
+// ==========================================
+const token = localStorage.getItem('token');
+if (!token) {
+    // Se não tem token, redireciona para login
+    window.location.href = 'login.html';
+} else {
+    // Mostra nome do usuário no header
+    const userSpan = document.getElementById('user-name');
+    if (userSpan) {
+        userSpan.textContent = localStorage.getItem('nome') || 'Administrador';
+    }
+}
+
+// ==========================================
+// 1. FUNÇÃO DE LOGOUT
+// ==========================================
+function logout() {
+    if (confirm('Deseja realmente sair do sistema?')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('username');
+        localStorage.removeItem('nome');
+        window.location.href = 'login.html';
+    }
+}
+
+// ==========================================
+// 2. NAVEGAÇÃO E UI
 // ==========================================
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
@@ -28,11 +55,25 @@ document.querySelectorAll('.nav-item').forEach(item => {
 });
 
 // ==========================================
-// 2. FUNÇÕES DE API (FETCH)
+// 3. FUNÇÕES DE API (FETCH COM JWT)
 // ==========================================
 async function fetchData(endpoint) {
     try {
-        const response = await fetch(`${API_URL}/${endpoint}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/${endpoint}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        // Token expirado ou inválido
+        if (response.status === 401 || response.status === 403) {
+            alert('⚠️ Sua sessão expirou. Faça login novamente.');
+            logout();
+            return [];
+        }
+        
         if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
         return await response.json();
     } catch (error) {
@@ -43,11 +84,22 @@ async function fetchData(endpoint) {
 
 async function postData(endpoint, data, method = 'POST') {
     try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/${endpoint}`, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify(data)
         });
+        
+        // Token expirado ou inválido
+        if (response.status === 401 || response.status === 403) {
+            alert('⚠️ Sua sessão expirou. Faça login novamente.');
+            logout();
+            return null;
+        }
         
         if (!response.ok) {
             const errData = await response.json();
@@ -64,8 +116,33 @@ async function postData(endpoint, data, method = 'POST') {
     }
 }
 
+async function deleteData(endpoint, id) {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/${endpoint}/${id}`, { 
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.status === 401 || response.status === 403) {
+            alert('⚠️ Sua sessão expirou. Faça login novamente.');
+            logout();
+            return false;
+        }
+        
+        if (response.ok) return true;
+        
+        const err = await response.json();
+        throw new Error(err.message || 'Erro ao excluir');
+    } catch (error) {
+        throw error;
+    }
+}
+
 // ==========================================
-// 3. RENDERIZAÇÃO DE DADOS
+// 4. RENDERIZAÇÃO DE DADOS
 // ==========================================
 async function loadDashboard() {
     const escolas = await fetchData('escolas');
@@ -115,10 +192,12 @@ function renderEscolas(data) {
 function updateSchoolDropdowns(escolas) {
     const selects = [document.getElementById('prof-escola'), document.getElementById('alu-escola')];
     selects.forEach(select => {
+        const currentValue = select.value;
         select.innerHTML = '<option value="">Selecione a Escola *</option>';
         escolas.forEach(esc => {
             select.innerHTML += `<option value="${esc.id}">${esc.nome}</option>`;
         });
+        if (currentValue) select.value = currentValue;
     });
 }
 
@@ -128,7 +207,6 @@ async function loadProfessores() {
 }
 
 function renderProfessores(data) {
-    const escolas = cacheEscolas;
     const tbody = document.getElementById('tbody-professores');
     tbody.innerHTML = '';
 
@@ -138,9 +216,7 @@ function renderProfessores(data) {
     }
 
     data.forEach(prof => {
-        const escolaId = prof.escola ? prof.escola.id : null;
-        const escolaEncontrada = escolas.find(e => e.id === escolaId);
-        const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
+        const escolaNome = prof.escola ? prof.escola.nome : 'Não vinculada';
         
         tbody.innerHTML += `
             <tr>
@@ -168,7 +244,6 @@ async function loadAlunos() {
 }
 
 function renderAlunos(data) {
-    const escolas = cacheEscolas;
     const tbody = document.getElementById('tbody-alunos');
     tbody.innerHTML = '';
 
@@ -178,10 +253,7 @@ function renderAlunos(data) {
     }
 
     data.forEach(alu => {
-        const escolaId = alu.escola ? alu.escola.id : null;
-        const escolaEncontrada = escolas.find(e => e.id === escolaId);
-        const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
-        
+        const escolaNome = alu.escola ? alu.escola.nome : 'Não vinculada';
         const dataFormatada = alu.dataNascimento ? new Date(alu.dataNascimento).toLocaleDateString('pt-BR') : '-';
 
         tbody.innerHTML += `
@@ -205,7 +277,7 @@ function renderAlunos(data) {
 }
 
 // ==========================================
-// 4. BUSCA LOCAL
+// 5. BUSCA LOCAL EM TEMPO REAL
 // ==========================================
 document.getElementById('search-escolas').addEventListener('input', (e) => {
     const termo = e.target.value.toLowerCase();
@@ -226,7 +298,7 @@ document.getElementById('search-alunos').addEventListener('input', (e) => {
 });
 
 // ==========================================
-// 5. MANIPULAÇÃO DE FORMULÁRIOS (CREATE/UPDATE)
+// 6. MANIPULAÇÃO DE FORMULÁRIOS (CREATE/UPDATE)
 // ==========================================
 document.getElementById('form-escola').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -314,7 +386,7 @@ document.getElementById('form-aluno').addEventListener('submit', async (e) => {
 });
 
 // ==========================================
-// 6. FUNÇÕES DE EDIÇÃO
+// 7. FUNÇÕES DE EDIÇÃO
 // ==========================================
 function editEscola(id) {
     const escola = cacheEscolas.find(e => e.id === id);
@@ -386,34 +458,34 @@ document.getElementById('btn-cancel-aluno').addEventListener('click', () => {
 });
 
 // ==========================================
-// 7. FUNÇÕES AUXILIARES
+// 8. EXCLUSÃO
 // ==========================================
 async function deleteItem(endpoint, id) {
     if (!confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) return;
     
     try {
-        const response = await fetch(`${API_URL}/${endpoint}/${id}`, { method: 'DELETE' });
-        if (response.ok) {
+        const sucesso = await deleteData(endpoint, id);
+        if (sucesso) {
             alert('✅ Excluído com sucesso!');
             await refreshAll();
-        } else {
-            const err = await response.json();
-            alert(`❌ Erro ao excluir: ${err.message || 'Verifique se há dependências vinculadas a este registro.'}`);
         }
     } catch (error) {
-        alert('❌ Erro de conexão com a API ao tentar excluir.');
+        alert(`❌ Erro ao excluir: ${error.message || 'Verifique se há dependências vinculadas a este registro.'}`);
     }
 }
 
+// ==========================================
+// 9. ATUALIZAÇÃO GERAL
+// ==========================================
 async function refreshAll() {
-    await loadEscolas();
-    await loadProfessores();
+    await loadEscolas();      // Carrega primeiro para popular os dropdowns
+    await loadProfessores();  // Carrega depois que os dropdowns estão prontos
     await loadAlunos();
-    await loadDashboard();
+    await loadDashboard();    // Atualiza os contadores por último
 }
 
 // ==========================================
-// 8. INICIALIZAÇÃO
+// 10. INICIALIZAÇÃO
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     refreshAll();

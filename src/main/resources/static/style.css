@@ -129,3 +129,108 @@ input:focus, select:focus { outline: none; border-color: var(--primary); backgro
     .nav-item i { font-size: 1.5rem; }
     .main-content { margin-left: 70px; width: calc(100% - 70px); padding: 1rem; }
 }
+
+
+
+/* Botão de Logout */
+.btn-logout {
+    margin-left: 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: background 0.2s;
+}
+.btn-logout:hover {
+    background: #dc2626;
+}
+
+/* Botões de Editar e Excluir */
+.btn-edit {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-right: 0.3rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: background 0.2s;
+}
+.btn-edit:hover {
+    background: #d97706;
+}
+
+.btn-delete {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: background 0.2s;
+}
+.btn-delete:hover {
+    background: #dc2626;
+}
+
+/* Botão Secundário (Cancelar) */
+.btn-secondary {
+    background: #94a3b8;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.2s;
+    height: 42px;
+}
+.btn-secondary:hover {
+    background: #64748b;
+}
+
+/* Ações do Formulário */
+.form-actions {
+    display: flex;
+    gap: 0.5rem;
+    grid-column: 1 / -1;
+}
+
+/* Header da Tabela com Busca */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.search-input {
+    width: 300px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+/* Responsividade para busca */
+@media (max-width: 1024px) {
+    .search-input { width: 100%; }
+    .table-header { flex-direction: column; gap: 1rem; align-items: stretch; }
+}
