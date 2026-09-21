@@ -7,18 +7,19 @@ public record AlunoDTO(
     Long id,
     
     @NotBlank(message = "Nome é obrigatório")
-    @Size(min = 3, max = 100)
+    @Size(min = 3, max = 100, message = "O nome deve ter entre 3 e 100 caracteres")
     String nome,
     
-    @Size(max = 20)
+    @NotBlank(message = "Matrícula é obrigatória")
+    @Size(max = 20, message = "Matrícula deve ter no máximo 20 caracteres")
     String matricula,
     
-    @Past(message = "Data de nascimento deve ser no passado")
+    @Past(message = "A data de nascimento deve ser no passado")
     LocalDate dataNascimento,
     
-    @Email(message = "Email inválido")
+    @Email(message = "Formato de e-mail inválido")
     String email,
     
-    @NotNull(message = "Escola é obrigatória")
+    @NotNull(message = "A escola é obrigatória")
     Long escolaId
 ) {}

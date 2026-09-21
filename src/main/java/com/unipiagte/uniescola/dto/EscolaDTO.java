@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Size;
 
 public record EscolaDTO(
     Long id,
+    
     @NotBlank(message = "Nome é obrigatório")
     @Size(min = 3, max = 150, message = "Nome deve ter entre 3 e 150 caracteres")
     String nome,
@@ -14,7 +15,10 @@ public record EscolaDTO(
     
     String endereco
 ) {
+    // Construtor compacto do Record para sanitizar o CNPJ antes da validação
     public EscolaDTO {
-        if (cnpj != null) cnpj = cnpj.replaceAll("[^0-9]", "");
+        if (cnpj != null) {
+            cnpj = cnpj.replaceAll("[^0-9]", "");
+        }
     }
 }

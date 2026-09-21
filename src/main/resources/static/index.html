@@ -1,19 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UniEscola | Painel Administrativo</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Ícones (Phosphor Icons - Leve e moderno) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="icon" href="data:;base64,=">
 </head>
-
 <body>
     <div class="app-container">
-        <!-- Sidebar de Navegação -->
         <aside class="sidebar">
             <div class="logo">
                 <i class="ph ph-graduation-cap"></i>
@@ -36,11 +33,10 @@
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <p>v1.0.0 &copy; 2026</p>
+                <p>v2.0.0 &copy; 2026</p>
             </div>
         </aside>
 
-        <!-- Conteúdo Principal -->
         <main class="main-content">
             <header class="top-bar">
                 <h1 id="page-title">Dashboard</h1>
@@ -50,7 +46,7 @@
                 </div>
             </header>
 
-            <!-- SEÇÃO: DASHBOARD -->
+            <!-- DASHBOARD -->
             <section id="dashboard" class="content-section active">
                 <div class="cards-grid">
                     <div class="stat-card blue">
@@ -77,24 +73,30 @@
                 </div>
                 <div class="info-panel">
                     <h3><i class="ph ph-info"></i> Sobre o Sistema</h3>
-                    <p>API desenvolvida em Spring Boot demonstrando conceitos avançados de Banco de Dados Relacional.
-                        Utilize o menu lateral para gerenciar as entidades.</p>
+                    <p>API desenvolvida em Spring Boot demonstrando conceitos avançados de Banco de Dados Relacional. Utilize o menu lateral para gerenciar as entidades.</p>
                 </div>
             </section>
 
-            <!-- SEÇÃO: ESCOLAS -->
+            <!-- ESCOLAS -->
             <section id="escolas" class="content-section">
                 <div class="card form-card">
-                    <h3><i class="ph ph-plus-circle"></i> Nova Escola</h3>
+                    <h3><i class="ph ph-plus-circle"></i> <span id="form-escola-title">Nova Escola</span></h3>
                     <form id="form-escola" class="form-grid">
+                        <input type="hidden" id="esc-id">
                         <input type="text" id="esc-nome" placeholder="Nome da Escola *" required>
                         <input type="text" id="esc-cnpj" placeholder="CNPJ (somente números)" required>
                         <input type="text" id="esc-endereco" placeholder="Endereço Completo">
-                        <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                            <button type="button" class="btn-secondary" id="btn-cancel-escola" style="display:none;"><i class="ph ph-x"></i> Cancelar</button>
+                        </div>
                     </form>
                 </div>
                 <div class="card table-card">
-                    <h3>Escolas Cadastradas</h3>
+                    <div class="table-header">
+                        <h3>Escolas Cadastradas</h3>
+                        <input type="text" id="search-escolas" placeholder="🔍 Buscar por nome..." class="search-input">
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -107,20 +109,19 @@
                                 </tr>
                             </thead>
                             <tbody id="tbody-escolas">
-                                <tr>
-                                    <td colspan="5" class="empty-state">Carregando dados...</td>
-                                </tr>
+                                <tr><td colspan="5" class="empty-state">Carregando dados...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- SEÇÃO: PROFESSORES -->
+            <!-- PROFESSORES -->
             <section id="professores" class="content-section">
                 <div class="card form-card">
-                    <h3><i class="ph ph-plus-circle"></i> Novo Professor</h3>
+                    <h3><i class="ph ph-plus-circle"></i> <span id="form-professor-title">Novo Professor</span></h3>
                     <form id="form-professor" class="form-grid-3">
+                        <input type="hidden" id="prof-id">
                         <input type="text" id="prof-nome" placeholder="Nome Completo *" required>
                         <input type="email" id="prof-email" placeholder="E-mail *" required>
                         <input type="text" id="prof-especialidade" placeholder="Especialidade (ex: Matemática)">
@@ -129,11 +130,17 @@
                         <select id="prof-escola" required>
                             <option value="">Selecione a Escola *</option>
                         </select>
-                        <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                            <button type="button" class="btn-secondary" id="btn-cancel-professor" style="display:none;"><i class="ph ph-x"></i> Cancelar</button>
+                        </div>
                     </form>
                 </div>
                 <div class="card table-card">
-                    <h3>Professores Cadastrados</h3>
+                    <div class="table-header">
+                        <h3>Professores Cadastrados</h3>
+                        <input type="text" id="search-professores" placeholder="🔍 Buscar por nome..." class="search-input">
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -143,23 +150,23 @@
                                     <th>Especialidade</th>
                                     <th>Escola</th>
                                     <th>Salário</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-professores">
-                                <tr>
-                                    <td colspan="5" class="empty-state">Carregando dados...</td>
-                                </tr>
+                                <tr><td colspan="6" class="empty-state">Carregando dados...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </section>
 
-            <!-- SEÇÃO: ALUNOS -->
+            <!-- ALUNOS -->
             <section id="alunos" class="content-section">
                 <div class="card form-card">
-                    <h3><i class="ph ph-plus-circle"></i> Novo Aluno</h3>
+                    <h3><i class="ph ph-plus-circle"></i> <span id="form-aluno-title">Novo Aluno</span></h3>
                     <form id="form-aluno" class="form-grid-3">
+                        <input type="hidden" id="alu-id">
                         <input type="text" id="alu-nome" placeholder="Nome Completo *" required>
                         <input type="text" id="alu-matricula" placeholder="Matrícula *" required>
                         <input type="email" id="alu-email" placeholder="E-mail">
@@ -167,11 +174,17 @@
                         <select id="alu-escola" required>
                             <option value="">Selecione a Escola *</option>
                         </select>
-                        <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary"><i class="ph ph-floppy-disk"></i> Salvar</button>
+                            <button type="button" class="btn-secondary" id="btn-cancel-aluno" style="display:none;"><i class="ph ph-x"></i> Cancelar</button>
+                        </div>
                     </form>
                 </div>
                 <div class="card table-card">
-                    <h3>Alunos Cadastrados</h3>
+                    <div class="table-header">
+                        <h3>Alunos Cadastrados</h3>
+                        <input type="text" id="search-alunos" placeholder="🔍 Buscar por nome..." class="search-input">
+                    </div>
                     <div class="table-responsive">
                         <table class="data-table">
                             <thead>
@@ -181,12 +194,11 @@
                                     <th>Matrícula</th>
                                     <th>Escola</th>
                                     <th>Data Nasc.</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-alunos">
-                                <tr>
-                                    <td colspan="5" class="empty-state">Carregando dados...</td>
-                                </tr>
+                                <tr><td colspan="6" class="empty-state">Carregando dados...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -197,5 +209,4 @@
 
     <script src="script.js"></script>
 </body>
-
 </html>

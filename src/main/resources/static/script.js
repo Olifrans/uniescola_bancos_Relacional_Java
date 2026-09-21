@@ -1,20 +1,22 @@
 const API_URL = 'http://localhost:8080/api';
 
+// Cache de dados para busca local
+let cacheEscolas = [];
+let cacheProfessores = [];
+let cacheAlunos = [];
+
 // ==========================================
 // 1. NAVEGAÇÃO E UI
 // ==========================================
 document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
-        // Atualiza classe active no menu
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         item.classList.add('active');
         
-        // Mostra a seção correta
         const target = item.getAttribute('data-target');
         document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
         document.getElementById(target).classList.add('active');
         
-        // Atualiza título da página
         const titles = {
             'dashboard': 'Dashboard',
             'escolas': 'Gestão de Escolas',
@@ -39,24 +41,20 @@ async function fetchData(endpoint) {
     }
 }
 
-async function postData(endpoint, data) {
+async function postData(endpoint, data, method = 'POST') {
     try {
         const response = await fetch(`${API_URL}/${endpoint}`, {
-            method: 'POST',
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
         
         if (!response.ok) {
-            // Tenta ler a resposta de erro detalhada do GlobalExceptionHandler do Spring
             const errData = await response.json();
-            
-            // Se tiver mensagens de validação de campos (ex: @NotBlank, @Email)
             if (errData.messages) {
                 const erros = Object.values(errData.messages).join('\n- ');
                 throw new Error(`Erros de validação:\n- ${erros}`);
             }
-            
             throw new Error(errData.message || `Erro HTTP: ${response.status}`);
         }
         return await response.json();
@@ -80,13 +78,17 @@ async function loadDashboard() {
 }
 
 async function loadEscolas() {
-    const data = await fetchData('escolas');
+    cacheEscolas = await fetchData('escolas');
+    renderEscolas(cacheEscolas);
+    updateSchoolDropdowns(cacheEscolas);
+}
+
+function renderEscolas(data) {
     const tbody = document.getElementById('tbody-escolas');
     tbody.innerHTML = '';
 
     if (!data || data.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhuma escola cadastrada.</td></tr>';
-        updateSchoolDropdowns([]); // Limpa os dropdowns também
         return;
     }
 
@@ -98,17 +100,16 @@ async function loadEscolas() {
                 <td>${esc.cnpj || '-'}</td>
                 <td>${esc.endereco || '-'}</td>
                 <td>
-                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background-color: #ef4444;" 
-                            onclick="deleteItem('escolas', ${esc.id})">
-                        Excluir
+                    <button class="btn-edit" onclick="editEscola(${esc.id})">
+                        <i class="ph ph-pencil"></i> Editar
+                    </button>
+                    <button class="btn-delete" onclick="deleteItem('escolas', ${esc.id})">
+                        <i class="ph ph-trash"></i> Excluir
                     </button>
                 </td>
             </tr>
         `;
     });
-    
-    // Atualiza dropdowns de escolas nos formulários de Professor e Aluno
-    updateSchoolDropdowns(data);
 }
 
 function updateSchoolDropdowns(escolas) {
@@ -122,18 +123,21 @@ function updateSchoolDropdowns(escolas) {
 }
 
 async function loadProfessores() {
-    const data = await fetchData('professores');
-    const escolas = await fetchData('escolas'); 
+    cacheProfessores = await fetchData('professores');
+    renderProfessores(cacheProfessores);
+}
+
+function renderProfessores(data) {
+    const escolas = cacheEscolas;
     const tbody = document.getElementById('tbody-professores');
     tbody.innerHTML = '';
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum professor cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum professor cadastrado.</td></tr>';
         return;
     }
 
     data.forEach(prof => {
-        // Usa encadeamento opcional (?.) para evitar erro se prof.escola for null/undefined
         const escolaId = prof.escola ? prof.escola.id : null;
         const escolaEncontrada = escolas.find(e => e.id === escolaId);
         const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
@@ -145,24 +149,35 @@ async function loadProfessores() {
                 <td>${prof.especialidade || '-'}</td>
                 <td>${escolaNome}</td>
                 <td>R$ ${prof.salario ? Number(prof.salario).toFixed(2) : '0.00'}</td>
+                <td>
+                    <button class="btn-edit" onclick="editProfessor(${prof.id})">
+                        <i class="ph ph-pencil"></i> Editar
+                    </button>
+                    <button class="btn-delete" onclick="deleteItem('professores', ${prof.id})">
+                        <i class="ph ph-trash"></i> Excluir
+                    </button>
+                </td>
             </tr>
         `;
     });
 }
 
 async function loadAlunos() {
-    const data = await fetchData('alunos');
-    const escolas = await fetchData('escolas');
+    cacheAlunos = await fetchData('alunos');
+    renderAlunos(cacheAlunos);
+}
+
+function renderAlunos(data) {
+    const escolas = cacheEscolas;
     const tbody = document.getElementById('tbody-alunos');
     tbody.innerHTML = '';
 
     if (!data || data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">Nenhum aluno cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-state">Nenhum aluno cadastrado.</td></tr>';
         return;
     }
 
     data.forEach(alu => {
-        // Usa encadeamento opcional (?.) para evitar erro se alu.escola for null/undefined
         const escolaId = alu.escola ? alu.escola.id : null;
         const escolaEncontrada = escolas.find(e => e.id === escolaId);
         const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
@@ -176,34 +191,70 @@ async function loadAlunos() {
                 <td>${alu.matricula || '-'}</td>
                 <td>${escolaNome}</td>
                 <td>${dataFormatada}</td>
+                <td>
+                    <button class="btn-edit" onclick="editAluno(${alu.id})">
+                        <i class="ph ph-pencil"></i> Editar
+                    </button>
+                    <button class="btn-delete" onclick="deleteItem('alunos', ${alu.id})">
+                        <i class="ph ph-trash"></i> Excluir
+                    </button>
+                </td>
             </tr>
         `;
     });
 }
 
 // ==========================================
-// 4. MANIPULAÇÃO DE FORMULÁRIOS
+// 4. BUSCA LOCAL
+// ==========================================
+document.getElementById('search-escolas').addEventListener('input', (e) => {
+    const termo = e.target.value.toLowerCase();
+    const filtradas = cacheEscolas.filter(esc => esc.nome.toLowerCase().includes(termo));
+    renderEscolas(filtradas);
+});
+
+document.getElementById('search-professores').addEventListener('input', (e) => {
+    const termo = e.target.value.toLowerCase();
+    const filtrados = cacheProfessores.filter(prof => prof.nome.toLowerCase().includes(termo));
+    renderProfessores(filtrados);
+});
+
+document.getElementById('search-alunos').addEventListener('input', (e) => {
+    const termo = e.target.value.toLowerCase();
+    const filtrados = cacheAlunos.filter(alu => alu.nome.toLowerCase().includes(termo));
+    renderAlunos(filtrados);
+});
+
+// ==========================================
+// 5. MANIPULAÇÃO DE FORMULÁRIOS (CREATE/UPDATE)
 // ==========================================
 document.getElementById('form-escola').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const id = document.getElementById('esc-id').value;
     const data = {
         nome: document.getElementById('esc-nome').value.trim(),
         cnpj: document.getElementById('esc-cnpj').value.trim(),
         endereco: document.getElementById('esc-endereco').value.trim()
     };
     
-    if (await postData('escolas', data)) {
+    const endpoint = id ? `escolas/${id}` : 'escolas';
+    const method = id ? 'PUT' : 'POST';
+    
+    if (await postData(endpoint, data, method)) {
         e.target.reset();
+        document.getElementById('esc-id').value = '';
+        document.getElementById('form-escola-title').innerText = 'Nova Escola';
+        document.getElementById('btn-cancel-escola').style.display = 'none';
         await refreshAll();
-        alert('✅ Escola salva com sucesso!');
+        alert(`✅ Escola ${id ? 'atualizada' : 'salva'} com sucesso!`);
     }
 });
 
 document.getElementById('form-professor').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // VALIDAÇÃO CRÍTICA: Impede envio de NaN se o usuário não selecionar a escola
+    const id = document.getElementById('prof-id').value;
     const escolaIdStr = document.getElementById('prof-escola').value;
+    
     if (!escolaIdStr) {
         alert("⚠️ Por favor, selecione uma Escola no campo correspondente.");
         return;
@@ -215,21 +266,27 @@ document.getElementById('form-professor').addEventListener('submit', async (e) =
         especialidade: document.getElementById('prof-especialidade').value.trim(),
         salario: parseFloat(document.getElementById('prof-salario').value) || 0.0,
         dataContratacao: document.getElementById('prof-data').value || null,
-        escolaId: parseInt(escolaIdStr) // Agora garantimos que é um número inteiro válido
+        escolaId: parseInt(escolaIdStr)
     };
     
-    if (await postData('professores', data)) {
+    const endpoint = id ? `professores/${id}` : 'professores';
+    const method = id ? 'PUT' : 'POST';
+    
+    if (await postData(endpoint, data, method)) {
         e.target.reset();
+        document.getElementById('prof-id').value = '';
+        document.getElementById('form-professor-title').innerText = 'Novo Professor';
+        document.getElementById('btn-cancel-professor').style.display = 'none';
         await refreshAll();
-        alert('✅ Professor salvo com sucesso!');
+        alert(`✅ Professor ${id ? 'atualizado' : 'salvo'} com sucesso!`);
     }
 });
 
 document.getElementById('form-aluno').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    // VALIDAÇÃO CRÍTICA: Impede envio de NaN se o usuário não selecionar a escola
+    const id = document.getElementById('alu-id').value;
     const escolaIdStr = document.getElementById('alu-escola').value;
+    
     if (!escolaIdStr) {
         alert("⚠️ Por favor, selecione uma Escola no campo correspondente.");
         return;
@@ -240,18 +297,96 @@ document.getElementById('form-aluno').addEventListener('submit', async (e) => {
         matricula: document.getElementById('alu-matricula').value.trim(),
         email: document.getElementById('alu-email').value.trim(),
         dataNascimento: document.getElementById('alu-data').value,
-        escolaId: parseInt(escolaIdStr) // Agora garantimos que é um número inteiro válido
+        escolaId: parseInt(escolaIdStr)
     };
     
-    if (await postData('alunos', data)) {
+    const endpoint = id ? `alunos/${id}` : 'alunos';
+    const method = id ? 'PUT' : 'POST';
+    
+    if (await postData(endpoint, data, method)) {
         e.target.reset();
+        document.getElementById('alu-id').value = '';
+        document.getElementById('form-aluno-title').innerText = 'Novo Aluno';
+        document.getElementById('btn-cancel-aluno').style.display = 'none';
         await refreshAll();
-        alert('✅ Aluno salvo com sucesso!');
+        alert(`✅ Aluno ${id ? 'atualizado' : 'salvo'} com sucesso!`);
     }
 });
 
 // ==========================================
-// 5. FUNÇÕES AUXILIARES
+// 6. FUNÇÕES DE EDIÇÃO
+// ==========================================
+function editEscola(id) {
+    const escola = cacheEscolas.find(e => e.id === id);
+    if (!escola) return;
+
+    document.getElementById('esc-id').value = escola.id;
+    document.getElementById('esc-nome').value = escola.nome;
+    document.getElementById('esc-cnpj').value = escola.cnpj || '';
+    document.getElementById('esc-endereco').value = escola.endereco || '';
+    document.getElementById('form-escola-title').innerText = 'Editar Escola';
+    document.getElementById('btn-cancel-escola').style.display = 'inline-flex';
+    
+    document.getElementById('escolas').scrollIntoView({ behavior: 'smooth' });
+}
+
+function editProfessor(id) {
+    const prof = cacheProfessores.find(p => p.id === id);
+    if (!prof) return;
+
+    document.getElementById('prof-id').value = prof.id;
+    document.getElementById('prof-nome').value = prof.nome;
+    document.getElementById('prof-email').value = prof.email || '';
+    document.getElementById('prof-especialidade').value = prof.especialidade || '';
+    document.getElementById('prof-salario').value = prof.salario || '';
+    document.getElementById('prof-data').value = prof.dataContratacao || '';
+    document.getElementById('prof-escola').value = prof.escola ? prof.escola.id : '';
+    document.getElementById('form-professor-title').innerText = 'Editar Professor';
+    document.getElementById('btn-cancel-professor').style.display = 'inline-flex';
+    
+    document.getElementById('professores').scrollIntoView({ behavior: 'smooth' });
+}
+
+function editAluno(id) {
+    const alu = cacheAlunos.find(a => a.id === id);
+    if (!alu) return;
+
+    document.getElementById('alu-id').value = alu.id;
+    document.getElementById('alu-nome').value = alu.nome;
+    document.getElementById('alu-matricula').value = alu.matricula || '';
+    document.getElementById('alu-email').value = alu.email || '';
+    document.getElementById('alu-data').value = alu.dataNascimento || '';
+    document.getElementById('alu-escola').value = alu.escola ? alu.escola.id : '';
+    document.getElementById('form-aluno-title').innerText = 'Editar Aluno';
+    document.getElementById('btn-cancel-aluno').style.display = 'inline-flex';
+    
+    document.getElementById('alunos').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Botões de cancelar edição
+document.getElementById('btn-cancel-escola').addEventListener('click', () => {
+    document.getElementById('form-escola').reset();
+    document.getElementById('esc-id').value = '';
+    document.getElementById('form-escola-title').innerText = 'Nova Escola';
+    document.getElementById('btn-cancel-escola').style.display = 'none';
+});
+
+document.getElementById('btn-cancel-professor').addEventListener('click', () => {
+    document.getElementById('form-professor').reset();
+    document.getElementById('prof-id').value = '';
+    document.getElementById('form-professor-title').innerText = 'Novo Professor';
+    document.getElementById('btn-cancel-professor').style.display = 'none';
+});
+
+document.getElementById('btn-cancel-aluno').addEventListener('click', () => {
+    document.getElementById('form-aluno').reset();
+    document.getElementById('alu-id').value = '';
+    document.getElementById('form-aluno-title').innerText = 'Novo Aluno';
+    document.getElementById('btn-cancel-aluno').style.display = 'none';
+});
+
+// ==========================================
+// 7. FUNÇÕES AUXILIARES
 // ==========================================
 async function deleteItem(endpoint, id) {
     if (!confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) return;
@@ -271,14 +406,14 @@ async function deleteItem(endpoint, id) {
 }
 
 async function refreshAll() {
-    await loadEscolas();      // Carrega primeiro para popular os dropdowns
-    await loadProfessores();  // Carrega depois que os dropdowns estão prontos
+    await loadEscolas();
+    await loadProfessores();
     await loadAlunos();
-    await loadDashboard();    // Atualiza os contadores por último
+    await loadDashboard();
 }
 
 // ==========================================
-// 6. INICIALIZAÇÃO
+// 8. INICIALIZAÇÃO
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     refreshAll();
