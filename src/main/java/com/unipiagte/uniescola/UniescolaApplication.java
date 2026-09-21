@@ -1,4 +1,4 @@
-package com.unipiagte.uniescola;
+package  com.unipiagte.uniescola;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
