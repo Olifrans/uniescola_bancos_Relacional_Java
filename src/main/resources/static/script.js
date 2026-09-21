@@ -10,10 +10,8 @@ let cacheAlunos = [];
 // ==========================================
 const token = localStorage.getItem('token');
 if (!token) {
-    // Se não tem token, redireciona para login
     window.location.href = 'login.html';
 } else {
-    // Mostra nome do usuário no header
     const userSpan = document.getElementById('user-name');
     if (userSpan) {
         userSpan.textContent = localStorage.getItem('nome') || 'Administrador';
@@ -67,7 +65,6 @@ async function fetchData(endpoint) {
             }
         });
         
-        // Token expirado ou inválido
         if (response.status === 401 || response.status === 403) {
             alert('⚠️ Sua sessão expirou. Faça login novamente.');
             logout();
@@ -94,7 +91,6 @@ async function postData(endpoint, data, method = 'POST') {
             body: JSON.stringify(data)
         });
         
-        // Token expirado ou inválido
         if (response.status === 401 || response.status === 403) {
             alert('⚠️ Sua sessão expirou. Faça login novamente.');
             logout();
@@ -121,9 +117,7 @@ async function deleteData(endpoint, id) {
         const token = localStorage.getItem('token');
         const response = await fetch(`${API_URL}/${endpoint}/${id}`, { 
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+            headers: { 'Authorization': `Bearer ${token}` }
         });
         
         if (response.status === 401 || response.status === 403) {
@@ -216,7 +210,9 @@ function renderProfessores(data) {
     }
 
     data.forEach(prof => {
-        const escolaNome = prof.escola ? prof.escola.nome : 'Não vinculada';
+        const escolaId = prof.escola ? prof.escola.id : null;
+        const escolaEncontrada = cacheEscolas.find(e => e.id === escolaId);
+        const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
         
         tbody.innerHTML += `
             <tr>
@@ -253,7 +249,9 @@ function renderAlunos(data) {
     }
 
     data.forEach(alu => {
-        const escolaNome = alu.escola ? alu.escola.nome : 'Não vinculada';
+        const escolaId = alu.escola ? alu.escola.id : null;
+        const escolaEncontrada = cacheEscolas.find(e => e.id === escolaId);
+        const escolaNome = escolaEncontrada ? escolaEncontrada.nome : 'Não vinculada';
         const dataFormatada = alu.dataNascimento ? new Date(alu.dataNascimento).toLocaleDateString('pt-BR') : '-';
 
         tbody.innerHTML += `
@@ -279,19 +277,19 @@ function renderAlunos(data) {
 // ==========================================
 // 5. BUSCA LOCAL EM TEMPO REAL
 // ==========================================
-document.getElementById('search-escolas').addEventListener('input', (e) => {
+document.getElementById('search-escolas')?.addEventListener('input', (e) => {
     const termo = e.target.value.toLowerCase();
     const filtradas = cacheEscolas.filter(esc => esc.nome.toLowerCase().includes(termo));
     renderEscolas(filtradas);
 });
 
-document.getElementById('search-professores').addEventListener('input', (e) => {
+document.getElementById('search-professores')?.addEventListener('input', (e) => {
     const termo = e.target.value.toLowerCase();
     const filtrados = cacheProfessores.filter(prof => prof.nome.toLowerCase().includes(termo));
     renderProfessores(filtrados);
 });
 
-document.getElementById('search-alunos').addEventListener('input', (e) => {
+document.getElementById('search-alunos')?.addEventListener('input', (e) => {
     const termo = e.target.value.toLowerCase();
     const filtrados = cacheAlunos.filter(alu => alu.nome.toLowerCase().includes(termo));
     renderAlunos(filtrados);
@@ -328,7 +326,7 @@ document.getElementById('form-professor').addEventListener('submit', async (e) =
     const escolaIdStr = document.getElementById('prof-escola').value;
     
     if (!escolaIdStr) {
-        alert("⚠️ Por favor, selecione uma Escola no campo correspondente.");
+        alert("⚠️ Por favor, selecione uma Escola.");
         return;
     }
 
@@ -360,7 +358,7 @@ document.getElementById('form-aluno').addEventListener('submit', async (e) => {
     const escolaIdStr = document.getElementById('alu-escola').value;
     
     if (!escolaIdStr) {
-        alert("⚠️ Por favor, selecione uma Escola no campo correspondente.");
+        alert("⚠️ Por favor, selecione uma Escola.");
         return;
     }
 
@@ -478,10 +476,10 @@ async function deleteItem(endpoint, id) {
 // 9. ATUALIZAÇÃO GERAL
 // ==========================================
 async function refreshAll() {
-    await loadEscolas();      // Carrega primeiro para popular os dropdowns
-    await loadProfessores();  // Carrega depois que os dropdowns estão prontos
+    await loadEscolas();
+    await loadProfessores();
     await loadAlunos();
-    await loadDashboard();    // Atualiza os contadores por último
+    await loadDashboard();
 }
 
 // ==========================================
